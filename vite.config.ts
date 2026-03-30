@@ -15,6 +15,9 @@ function geojsonAsJsonPlugin() {
 
 export default defineConfig({
   plugins: [geojsonAsJsonPlugin()],
+  // Ensure asset URLs are correct for a project GitHub Pages site:
+  // https://<user>.github.io/<repo>/...
+  base: "/tomscottcounties/",
   build: {
     chunkSizeWarningLimit: 2500,
   },

@@ -18,15 +18,10 @@ import Polygon from "ol/geom/Polygon.js";
 import type { EpisodeInfo, EpisodesMap } from "./types/episodes.js";
 // Bundled England-only polygons; join keys use `name` (= ONS CTY1921NM in prepare script).
 import countiesFc from "./data/counties.geojson";
+import episodesData from "../public/data/episodes.json";
 
-async function loadEpisodes(): Promise<EpisodesMap> {
-  const res = await fetch("/data/episodes.json");
-  if (!res.ok) throw new Error(`Failed to load episodes: ${res.status}`);
-  return res.json() as Promise<EpisodesMap>;
-}
-
-/** Keeps county highlight styles in sync after async episode load. */
-let episodes: EpisodesMap = {};
+/** Episodes keyed by county name (embedded at build time). */
+let episodes: EpisodesMap = episodesData as EpisodesMap;
 
 /** Stable “middle” of a county polygon for the popup tail (not the click pixel). */
 function getCountyAnchor(feature: FeatureLike): Coordinate | null {
@@ -123,21 +118,32 @@ function main() {
     overlay.setPosition(coordinate);
   }
 
+  // England + nearby sea (excludes Ireland, Scotland, Wales as primary focus).
+  const mapMaxExtent4326 = [-7.1, 49.55, 2.55, 56.05];
+  // Slightly tighter first frame; still within mapMaxExtent4326.
+  const initialViewExtent4326 = [-6.85, 49.72, 2.2, 55.92];
+  const mapMaxExtent3857 = transformExtent(mapMaxExtent4326, "EPSG:4326", "EPSG:3857");
+
   const map = new Map({
     target: "map",
     layers: [new TileLayer({ source: new OSM() }), vectorLayer],
     overlays: [overlay],
-    view: new View({ center: [0, 0], zoom: 2 }),
+    view: new View({
+      center: [0, 0],
+      zoom: 2,
+      extent: mapMaxExtent3857,
+      // Without this, wide/tall viewports cannot zoom out far enough to see the
+      // whole constrained region (OL keeps the viewport inside the extent box).
+      showFullExtent: true,
+      maxZoom: 18,
+    }),
   });
   const mapTarget = map.getTargetElement();
 
-  const englandExtent4326 = [-6.5, 49.5, 2.2, 55.95];
-  map
-    .getView()
-    .fit(transformExtent(englandExtent4326, "EPSG:4326", "EPSG:3857"), {
-      padding: [24, 24, 24, 24],
-      maxZoom: 9,
-    });
+  map.getView().fit(transformExtent(initialViewExtent4326, "EPSG:4326", "EPSG:3857"), {
+    padding: [96, 96, 96, 96],
+    maxZoom: 5,
+  });
 
   function refreshMapSize(): void {
     map.updateSize();
@@ -210,15 +216,6 @@ function main() {
       hidePopup();
     });
   }
-
-  void loadEpisodes()
-    .then((loaded) => {
-      episodes = loaded;
-      vectorLayer.changed();
-    })
-    .catch((err: unknown) => {
-      console.error(err);
-    });
 }
 
 function escapeHtml(text: string): string {
