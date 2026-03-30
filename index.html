@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tom Scott: England — counties map</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <h1>Tom Scott: England</h1>
+        <p class="subtitle">Historic counties with a released episode</p>
+      </header>
+      <div id="map" class="map" role="application" aria-label="Map of England">
+        <div id="popup" class="ol-popup" hidden>
+          <div class="popup-card">
+            <button type="button" class="popup-close" aria-label="Close">×</button>
+            <div class="popup-body"></div>
+          </div>
+          <div class="popup-pointer" aria-hidden="true">
+            <svg width="32" height="16" viewBox="0 0 32 16" focusable="false">
+              <polygon
+                points="0,0 32,0 16,15"
+                fill="#ffffff"
+                stroke="#e2e2de"
+                stroke-width="1"
+                stroke-linejoin="miter"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <p>
+          County boundaries: Office for National Statistics,
+          <a
+            href="https://www.data.gov.uk/dataset/3a75496e-406b-4e4d-826a-7fa582c4dbeb/counties-december-1921-boundaries-ew-bgc"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Counties (December 1921) Boundaries EW BGC</a
+          >, Open Government Licence v3.0. Basemap: © OpenStreetMap contributors.
+        </p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

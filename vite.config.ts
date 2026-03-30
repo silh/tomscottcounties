@@ -1,0 +1,21 @@
+import { readFileSync } from "node:fs";
+import { defineConfig } from "vite";
+
+function geojsonAsJsonPlugin() {
+  return {
+    name: "geojson-as-json",
+    load(id: string) {
+      if (id.endsWith(".geojson")) {
+        const raw = readFileSync(id, "utf-8");
+        return `export default ${JSON.stringify(JSON.parse(raw))}`;
+      }
+    },
+  };
+}
+
+export default defineConfig({
+  plugins: [geojsonAsJsonPlugin()],
+  build: {
+    chunkSizeWarningLimit: 2500,
+  },
+});

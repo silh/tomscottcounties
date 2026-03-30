@@ -1,0 +1,24 @@
+{
+  "name": "tomscottcounties",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "fetch:geojson": "curl -fsSL \"https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/75f7c89f483343e789c5f670b6933a40/geojson?layers=0\" -o _full.geojson",
+    "prepare:geojson": "node scripts/prepare-counties.mjs"
+  },
+  "devDependencies": {
+    "@turf/simplify": "7.2.0",
+    "@types/geojson": "7946.0.16",
+    "@types/node": "25.5.0",
+    "proj4": "2.15.0",
+    "typescript": "6.0.2",
+    "vite": "6.0.1"
+  },
+  "dependencies": {
+    "ol": "10.4.0"
+  }
+}
