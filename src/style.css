@@ -48,12 +48,148 @@ body {
   color: #555;
 }
 
+.main-row {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: row;
+  min-height: 0;
+  min-width: 0;
+}
+
 #map {
   flex: 1 1 0;
   min-height: 0;
-  width: 100%;
+  min-width: 0;
   position: relative;
   background: #e8eef2;
+}
+
+.episodes-panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(300px, 38vw);
+  max-width: 100%;
+  border-left: 1px solid #d8d8d4;
+  background: #fafaf8;
+  transition: width 0.2s ease;
+}
+
+.episodes-panel--collapsed {
+  width: 44px;
+  min-width: 44px;
+}
+
+.episodes-panel-toolbar {
+  flex-shrink: 0;
+  border-bottom: 1px solid #e8e8e4;
+}
+
+.episodes-panel-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.65rem 0.6rem;
+  border: none;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: #1a1a1a;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.episodes-panel-toggle:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.episodes-panel-toggle-text {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.episodes-panel--collapsed .episodes-panel-toggle-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.episodes-panel-chevron {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid #444;
+  border-bottom: 2px solid #444;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+
+.episodes-panel--collapsed .episodes-panel-chevron {
+  transform: rotate(135deg);
+}
+
+.episodes-panel--collapsed .episodes-panel-toggle {
+  justify-content: center;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
+
+.episodes-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.episodes-panel--collapsed .episodes-list {
+  display: none;
+}
+
+.episodes-item {
+  display: block;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #2563eb;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.episodes-item:hover {
+  background: rgba(37, 99, 235, 0.06);
+  text-decoration: underline;
+}
+
+.episodes-item--active {
+  background: rgba(229, 57, 53, 0.1);
+  border-left-color: rgba(198, 40, 40, 0.85);
+}
+
+.episodes-item-county {
+  display: block;
+  font-weight: 650;
+  color: #1a1a1a;
+}
+
+.episodes-item-title {
+  display: block;
+  margin-top: 0.2rem;
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: #444;
 }
 
 .footer {

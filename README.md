@@ -20,6 +20,7 @@ Edit [`public/data/episodes.json`](public/data/episodes.json). Each key must be 
 ```json
 {
   "Kent": {
+    "id": 2,
     "youtubeId": "VIDEO_ID",
     "title": "Title as shown on YouTube"
   }

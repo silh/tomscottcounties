@@ -20,8 +20,25 @@ import type { EpisodeInfo, EpisodesMap } from "./types/episodes.js";
 import countiesFc from "./data/counties.geojson";
 import episodesData from "../public/data/episodes.json";
 
+const EPISODES_PANEL_COLLAPSED_KEY = "tomscottcounties:episodesPanelCollapsed";
+
 /** Episodes keyed by county name (embedded at build time). */
-let episodes: EpisodesMap = episodesData as EpisodesMap;
+const episodes: EpisodesMap = episodesData as EpisodesMap;
+
+function warnDuplicateEpisodeIds(data: EpisodesMap): void {
+  if (!import.meta.env.DEV) return;
+  const byId = new globalThis.Map<number, string[]>();
+  for (const [county, ep] of Object.entries(data)) {
+    const list = byId.get(ep.id) ?? [];
+    list.push(county);
+    byId.set(ep.id, list);
+  }
+  for (const [id, counties] of byId) {
+    if (counties.length > 1) {
+      console.warn(`Duplicate episode id ${id}:`, counties.join(", "));
+    }
+  }
+}
 
 /** Stable “middle” of a county polygon for the popup tail (not the click pixel). */
 function getCountyAnchor(feature: FeatureLike): Coordinate | null {
@@ -49,7 +66,45 @@ function getCountyAnchor(feature: FeatureLike): Coordinate | null {
   return getCenter(geometry.getExtent());
 }
 
+function renderEpisodeList(container: HTMLElement, data: EpisodesMap): void {
+  const sorted = Object.entries(data).sort((a, b) => b[1].id - a[1].id);
+  const rows = sorted.map(([countyName, ep]) => {
+    const watchUrl = `https://www.youtube.com/watch?v=${ep.youtubeId}`;
+    const countyAttr = escapeHtml(countyName);
+    return `<a class="episodes-item" href="${watchUrl}" target="_blank" rel="noopener noreferrer" data-county="${countyAttr}"><span class="episodes-item-county">${ep.id}. ${escapeHtml(countyName)}</span><span class="episodes-item-title">${escapeHtml(ep.title)}</span></a>`;
+  });
+  container.innerHTML = rows.join("");
+}
+
+function wireEpisodeListHover(
+  container: HTMLElement,
+  setHighlightCounty: (name: string | null) => void,
+): void {
+  for (const el of container.querySelectorAll<HTMLElement>(".episodes-item")) {
+    const county = el.dataset.county;
+    if (!county) continue;
+    el.addEventListener("mouseenter", () => setHighlightCounty(county));
+    el.addEventListener("mouseleave", () => setHighlightCounty(null));
+  }
+}
+
 function main() {
+  warnDuplicateEpisodeIds(episodes);
+
+  const episodesPanel = document.getElementById("episodes-panel");
+  const episodesListEl = document.getElementById("episodes-list");
+  const episodesToggle = document.getElementById("episodes-panel-toggle");
+  if (episodesListEl) {
+    renderEpisodeList(episodesListEl, episodes);
+  }
+
+  if (episodesPanel instanceof HTMLElement && episodesToggle instanceof HTMLButtonElement) {
+    if (localStorage.getItem(EPISODES_PANEL_COLLAPSED_KEY) === "true") {
+      episodesPanel.classList.add("episodes-panel--collapsed");
+      episodesToggle.setAttribute("aria-expanded", "false");
+    }
+  }
+
   const format = new GeoJSON({
     dataProjection: "EPSG:4326",
     featureProjection: "EPSG:3857",
@@ -58,6 +113,8 @@ function main() {
 
   const visitedFill = new Fill({ color: "rgba(229, 57, 53, 0.38)" });
   const visitedStroke = new Stroke({ color: "rgba(198, 40, 40, 0.92)", width: 1.2 });
+  const visitedHoverFill = new Fill({ color: "rgba(229, 57, 53, 0.58)" });
+  const visitedHoverStroke = new Stroke({ color: "rgba(183, 28, 28, 1)", width: 2 });
   const neutralFill = new Fill({ color: "rgba(180, 180, 176, 0.22)" });
   const neutralStroke = new Stroke({ color: "rgba(130, 130, 126, 0.75)", width: 0.8 });
 
@@ -65,14 +122,23 @@ function main() {
     fill: visitedFill,
     stroke: visitedStroke,
   });
+  const visitedHoverStyle = new Style({
+    fill: visitedHoverFill,
+    stroke: visitedHoverStroke,
+  });
   const neutralStyle = new Style({
     fill: neutralFill,
     stroke: neutralStroke,
   });
 
+  let highlightCountyName: string | null = null;
+
   function countyStyle(feature: FeatureLike): Style {
     const name = feature.get("name") as string | undefined;
-    if (name && episodes[name]) return visitedStyle;
+    if (name && episodes[name]) {
+      if (name === highlightCountyName) return visitedHoverStyle;
+      return visitedStyle;
+    }
     return neutralStyle;
   }
 
@@ -81,6 +147,22 @@ function main() {
     source: vectorSource,
     style: countyStyle,
   });
+
+  function setHighlightCounty(name: string | null): void {
+    if (highlightCountyName === name) return;
+    highlightCountyName = name;
+    vectorLayer.changed();
+    if (episodesListEl) {
+      for (const el of episodesListEl.querySelectorAll<HTMLElement>(".episodes-item")) {
+        const c = el.dataset.county;
+        el.classList.toggle("episodes-item--active", c != null && c === name);
+      }
+    }
+  }
+
+  if (episodesListEl) {
+    wireEpisodeListHover(episodesListEl, setHighlightCounty);
+  }
 
   const popupEl = document.getElementById("popup");
   const popupBody = document.querySelector(".popup-body");
@@ -153,35 +235,42 @@ function main() {
   window.addEventListener("load", refreshMapSize);
   window.addEventListener("resize", refreshMapSize);
 
+  if (episodesPanel instanceof HTMLElement && episodesToggle instanceof HTMLButtonElement) {
+    episodesToggle.addEventListener("click", () => {
+      const collapsed = episodesPanel.classList.toggle("episodes-panel--collapsed");
+      episodesToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      localStorage.setItem(EPISODES_PANEL_COLLAPSED_KEY, collapsed ? "true" : "false");
+      requestAnimationFrame(refreshMapSize);
+    });
+  }
+
   const mapEl = document.getElementById("map");
   if (mapEl) {
     const ro = new ResizeObserver(() => refreshMapSize());
     ro.observe(mapEl);
     mapEl.addEventListener("mouseleave", () => {
       if (mapTarget) mapTarget.style.cursor = "";
+      setHighlightCounty(null);
     });
   }
 
-  function isVisitedCountyAtPixel(pixel: number[]): boolean {
-    let hit = false;
+  map.on("pointermove", (evt) => {
+    let hitName: string | null = null;
     map.forEachFeatureAtPixel(
-      pixel,
+      evt.pixel,
       (feature) => {
         const name = feature.get("name") as string | undefined;
         if (name && episodes[name]) {
-          hit = true;
+          hitName = name;
           return true;
         }
         return false;
       },
       { hitTolerance: 8, layerFilter: (l) => l === vectorLayer },
     );
-    return hit;
-  }
-
-  map.on("pointermove", (evt) => {
+    setHighlightCounty(hitName);
     if (mapTarget) {
-      mapTarget.style.cursor = isVisitedCountyAtPixel(evt.pixel) ? "pointer" : "";
+      mapTarget.style.cursor = hitName ? "pointer" : "";
     }
   });
 
