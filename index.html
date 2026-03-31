@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tom Scott: England — counties map</title>
-    <script type="module" crossorigin src="/tomscottcounties/assets/index-G1yT_uTy.js"></script>
-    <link rel="stylesheet" crossorigin href="/tomscottcounties/assets/index-CHxiWf50.css">
+    <script type="module" crossorigin src="/tomscottcounties/assets/index-CLhr1SlW.js"></script>
+    <link rel="stylesheet" crossorigin href="/tomscottcounties/assets/index-Dq9qGlzn.css">
   </head>
   <body>
     <div id="app">
@@ -13,24 +13,41 @@
         <h1>Tom Scott: England</h1>
         <p class="subtitle">Historic counties with a released episode</p>
       </header>
-      <div id="map" class="map" role="application" aria-label="Map of England">
-        <div id="popup" class="ol-popup" hidden>
-          <div class="popup-card">
-            <button type="button" class="popup-close" aria-label="Close">×</button>
-            <div class="popup-body"></div>
-          </div>
-          <div class="popup-pointer" aria-hidden="true">
-            <svg width="32" height="16" viewBox="0 0 32 16" focusable="false">
-              <polygon
-                points="0,0 32,0 16,15"
-                fill="#ffffff"
-                stroke="#e2e2de"
-                stroke-width="1"
-                stroke-linejoin="miter"
-              />
-            </svg>
+      <div class="main-row">
+        <div id="map" class="map" role="application" aria-label="Map of England">
+          <div id="popup" class="ol-popup" hidden>
+            <div class="popup-card">
+              <button type="button" class="popup-close" aria-label="Close">×</button>
+              <div class="popup-body"></div>
+            </div>
+            <div class="popup-pointer" aria-hidden="true">
+              <svg width="32" height="16" viewBox="0 0 32 16" focusable="false">
+                <polygon
+                  points="0,0 32,0 16,15"
+                  fill="#ffffff"
+                  stroke="#e2e2de"
+                  stroke-width="1"
+                  stroke-linejoin="miter"
+                />
+              </svg>
+            </div>
           </div>
         </div>
+        <aside id="episodes-panel" class="episodes-panel" aria-label="Episode list">
+          <div class="episodes-panel-toolbar">
+            <button
+              type="button"
+              id="episodes-panel-toggle"
+              class="episodes-panel-toggle"
+              aria-expanded="true"
+              aria-controls="episodes-list"
+            >
+              <span class="episodes-panel-toggle-text">Episodes</span>
+              <span class="episodes-panel-chevron" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div id="episodes-list" class="episodes-list"></div>
+        </aside>
       </div>
       <footer class="footer">
         <p>
